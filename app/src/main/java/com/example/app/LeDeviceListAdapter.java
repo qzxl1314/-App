@@ -33,7 +33,7 @@ public class LeDeviceListAdapter extends BaseAdapter {
     public void addDevice(iBeacon device) {
         if(device==null)
             return;
-        if(device.rssi>=-70) {//强度墙
+        if(device.rssi>=-80) {//强度墙
             for (int i = 0; i < mLeDevices.size(); i++) {
                 String btAddress = mLeDevices.get(i).bluetoothAddress;
                 if (btAddress.equals(device.bluetoothAddress)) {

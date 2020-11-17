@@ -22,7 +22,9 @@ public class MainActivity extends ListActivity {
     private final static String UUID_KEY_DATA = "0000ffe1-0000-1000-8000-00805f9b34fb";
 
     private LeDeviceListAdapter mLeDeviceListAdapter;
-    /**搜索BLE终端*/
+    /**
+     * 搜索BLE终端
+     */
     private BluetoothAdapter mBluetoothAdapter;
 
     private boolean mScanning;
@@ -30,10 +32,13 @@ public class MainActivity extends ListActivity {
 
     // Stops scanning after 10 seconds.
     private static final long SCAN_PERIOD = 60000;
-
+    private boolean run = false;
+    private final Handler handler = new Handler();
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        run = true;
+        handler.postDelayed(task, 1000);
         mHandler = new Handler();
         // Use this check to determine whether BLE is supported on the device.  Then you can
         // selectively disable BLE-related features.
@@ -54,6 +59,16 @@ public class MainActivity extends ListActivity {
         mBluetoothAdapter.enable();
 
     }
+    private final Runnable task = new Runnable() {
+        @Override
+        public void run() {
+            // TODO Auto-generated method stub
+            if (run) {
+                onResume();
+                handler.postDelayed(this, 10000);
+            }
+        }
+    };
 
 
     @Override
@@ -62,7 +77,7 @@ public class MainActivity extends ListActivity {
 
         // Initializes list view adapter.
         mLeDeviceListAdapter = new LeDeviceListAdapter(this);
-        Collections.sort(mLeDeviceListAdapter.getlist(),new LeDeviceListAdapter.sortById());
+        Collections.sort(mLeDeviceListAdapter.getlist(), new LeDeviceListAdapter.sortById());
         setListAdapter(mLeDeviceListAdapter);
         scanLeDevice(true);
     }
@@ -102,7 +117,7 @@ public class MainActivity extends ListActivity {
                 @Override
                 public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {
 
-                    final iBeaconClass.iBeacon ibeacon = iBeaconClass.fromScanData(device,rssi,scanRecord);
+                    final iBeaconClass.iBeacon ibeacon = iBeaconClass.fromScanData(device, rssi, scanRecord);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
