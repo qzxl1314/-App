@@ -19,14 +19,22 @@
             android:id="@+id/imageView4"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:srcCompat="@drawable/ship" />
+            app:srcCompat="@drawable/ship"
+            android:contentDescription="@string/todo" />
 
         <TextView
-            android:id="@+id/textView"
+            android:id="@+id/content"
             android:layout_width="match_parent"
             android:layout_height="45dp"
-            android:text="TextView"
+            android:text=""
             android:textSize="24sp" />
+
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:text=""
+            android:textSize="24sp"/>
 
         <ImageView
             android:id="@+id/imageView2"

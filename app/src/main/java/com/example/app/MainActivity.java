@@ -33,12 +33,12 @@ public class MainActivity extends ListActivity {
     // Stops scanning after 10 seconds.
     private static final long SCAN_PERIOD = 60000;
     private boolean run = false;
-    private final Handler handler = new Handler();
+//    private final Handler handler = new Handler();
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         run = true;
-        handler.postDelayed(task, 1000);
+//        handler.postDelayed(task, 1000);
         mHandler = new Handler();
         // Use this check to determine whether BLE is supported on the device.  Then you can
         // selectively disable BLE-related features.
@@ -59,16 +59,16 @@ public class MainActivity extends ListActivity {
         mBluetoothAdapter.enable();
 
     }
-    private final Runnable task = new Runnable() {
-        @Override
-        public void run() {
-            // TODO Auto-generated method stub
-            if (run) {
-                onResume();
-                handler.postDelayed(this, 10000);
-            }
-        }
-    };
+//    private final Runnable task = new Runnable() {
+//        @Override
+//        public void run() {
+//            // TODO Auto-generated method stub
+//            if (run) {
+//                onResume();
+//                handler.postDelayed(this, 10000);
+//            }
+//        }
+//    };
 
 
     @Override
@@ -77,7 +77,7 @@ public class MainActivity extends ListActivity {
 
         // Initializes list view adapter.
         mLeDeviceListAdapter = new LeDeviceListAdapter(this);
-        Collections.sort(mLeDeviceListAdapter.getlist(), new LeDeviceListAdapter.sortById());
+        System.out.println("Asd"+mLeDeviceListAdapter.getlist().size());
         setListAdapter(mLeDeviceListAdapter);
         scanLeDevice(true);
     }
@@ -122,6 +122,7 @@ public class MainActivity extends ListActivity {
                         @Override
                         public void run() {
                             mLeDeviceListAdapter.addDevice(ibeacon);
+                            Collections.sort(mLeDeviceListAdapter.getlist(), new LeDeviceListAdapter.sortById());
                             mLeDeviceListAdapter.notifyDataSetChanged();
                         }
                     });

@@ -23,14 +23,14 @@ public class LeDeviceListAdapter extends BaseAdapter {
     private LayoutInflater mInflator;
     private Activity mContext;
 
-    public LeDeviceListAdapter(Activity c) {
+    public LeDeviceListAdapter(Activity c) {//对活动设定列表数据集
         super();
         mContext = c;
         mLeDevices = new ArrayList<iBeacon>();
         mInflator = mContext.getLayoutInflater();
     }
 
-    public void addDevice(iBeacon device) {
+    public void addDevice(iBeacon device) {//添加设备，如果设备已经存在则刷新数据
         if(device==null)
             return;
         if(device.rssi>=-80) {//强度墙
@@ -74,7 +74,7 @@ public class LeDeviceListAdapter extends BaseAdapter {
         return mLeDevices;
     }
     @Override
-    public View getView(int i, View view, ViewGroup viewGroup) {
+    public View getView(int i, View view, ViewGroup viewGroup) {//将数据集显示到界面中
         ViewHolder viewHolder;
         // General ListView optimization code.
         if (view == null) {
@@ -111,10 +111,10 @@ public class LeDeviceListAdapter extends BaseAdapter {
         TextView deviceMajor_Minor;
         TextView devicetxPower_RSSI;
     }
-    static class sortById implements Comparator {
+    static class sortById implements Comparator {//重构设备列表的排序函数
 
         public int compare(Object o1, Object o2) {
-            if(((iBeacon)o1).rssi>((iBeacon)o2).rssi)
+            if(((iBeacon)o1).rssi<((iBeacon)o2).rssi)
                 return 1;
             return -1;
         }

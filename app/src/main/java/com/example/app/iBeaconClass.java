@@ -8,7 +8,7 @@ import android.bluetooth.BluetoothDevice;
  */
 public class iBeaconClass {//定义蓝牙设备的类
 
-    static public  class iBeacon{
+    static public  class iBeacon{//定义设备属性
         public String name;
         public int major;
         public int minor;
@@ -17,7 +17,7 @@ public class iBeaconClass {//定义蓝牙设备的类
         public int txPower;
         public int rssi;
     }
-    public static iBeacon fromScanData(BluetoothDevice device, int rssi,byte[] scanData) {
+    public static iBeacon fromScanData(BluetoothDevice device, int rssi,byte[] scanData) {//判断扫描到的设备是否是ibeacon
 
         int startByte = 2;
         boolean patternFound = false;
@@ -43,7 +43,6 @@ public class iBeaconClass {//定义蓝牙设备的类
                     ((int)scanData[startByte+1] & 0xff) == 0x77 &&
                     ((int)scanData[startByte+2] & 0xff) == 0x00 &&
                     ((int)scanData[startByte+3] & 0xff) == 0xc6) {
-
                 iBeacon iBeacon = new iBeacon();
                 iBeacon.major = 0;
                 iBeacon.minor = 0;
@@ -53,15 +52,11 @@ public class iBeaconClass {//定义蓝牙设备的类
             }
             startByte++;
         }
-
-
         if (patternFound == false) {
             // This is not an iBeacon
             return null;
         }
-
         iBeacon iBeacon = new iBeacon();
-
         iBeacon.major = (scanData[startByte+20] & 0xff) * 0x100 + (scanData[startByte+21] & 0xff);
         iBeacon.minor = (scanData[startByte+22] & 0xff) * 0x100 + (scanData[startByte+23] & 0xff);
         iBeacon.txPower = (int)scanData[startByte+24]; // this one is signed

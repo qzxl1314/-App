@@ -38,10 +38,11 @@ public class start extends AppCompatActivity {
         switch (v.getId()) {
             case R.id.imageView2:
                 // 此处添加事件
+
                 String username=name.getText().toString();
                 String uid=id.getText().toString();
                 saveLoginInfo(this,username,uid);
-                Intent intent=new Intent(start.this, MainActivity.class);
+                Intent intent=new Intent(start.this, show.class);
                 intent.putExtra("name",username);
                 intent.putExtra("id",uid);
                 startActivity(intent);
