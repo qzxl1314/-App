@@ -8,8 +8,8 @@ android {
 
     defaultConfig {
         applicationId "com.example.app"
-        minSdkVersion 21
-        targetSdkVersion 30
+        minSdkVersion 18
+        targetSdkVersion 26
         versionCode 1
         versionName "1.0"
 
@@ -33,15 +33,15 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'com.google.android.material:material:1.2.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
-    testImplementation 'junit:junit:4.+'
+    testImplementation 'junit:junit:4.13.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'junit:junit:4.12'
+    implementation 'junit:junit:4.13.1'
     //noinspection GradleCompatible
     implementation 'com.android.support:appcompat-v7:23.2.1'
     //noinspection GradleCompatible
     implementation 'com.android.support:design:23.2.1'
-    implementation 'org.altbeacon:android-beacon-library:2.9'
+    implementation 'org.altbeacon:android-beacon-library:2.13.1'
 
 }

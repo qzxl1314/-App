@@ -100,44 +100,35 @@ import java.util.TimerTask;
 //            System.out.println("Asd"+ mLeDeviceListAdapter.getlist().get(0).bluetoothAddress);
 //            Content.setText("你目前所在位置:" + mLeDeviceListAdapter.getlist().get(0).bluetoothAddress);
 //        }
-          scanLeDevice(true);
+          scanLeDevice();
       }
 
-      private void scanLeDevice(final boolean enable) {
-          if (enable) {
-              // Stops scanning after a pre-defined scan period.
-              mHandler.postDelayed(new Runnable() {
-                  @Override
-                  public void run() {
-                      mScanning = false;
-                      mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                      invalidateOptionsMenu();
-                  }
-              }, SCAN_PERIOD);
-
-              mScanning = true;
-              mBluetoothAdapter.startLeScan(mLeScanCallback);
-          } else {
+      private void scanLeDevice() {
+          // Stops scanning after a pre-defined scan period.
+          mHandler.postDelayed(() -> {
               mScanning = false;
               mBluetoothAdapter.stopLeScan(mLeScanCallback);
-          }
+              invalidateOptionsMenu();
+          }, SCAN_PERIOD);
+          mScanning = true;
+          mBluetoothAdapter.startLeScan(mLeScanCallback);
           invalidateOptionsMenu();
       }
 
       // Device scan callback.
-      private BluetoothAdapter.LeScanCallback mLeScanCallback =
+      private final BluetoothAdapter.LeScanCallback mLeScanCallback =
               new BluetoothAdapter.LeScanCallback() {//对设备列表进行刷新的接口
-
+                  @SuppressLint("SetTextI18n")
                   @Override
                   public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {//每扫描到一个设备刷新数据
-
+                      System.out.println("Asd");
                       final iBeaconClass.iBeacon ibeacon = iBeaconClass.fromScanData(device, rssi, scanRecord);
                       runOnUiThread(() -> {
                           mLeDeviceListAdapter.addDevice(ibeacon);
                           Collections.sort(mLeDeviceListAdapter.getlist(), new LeDeviceListAdapter.sortById());
                           if (mLeDeviceListAdapter.getlist().size() > 0) {
                               if (!mLeDeviceListAdapter.getlist().get(0).bluetoothAddress.equals(nowadress)) {//顶部蓝牙设备变化
-                                  System.out.println(nowadress + "asd" + mLeDeviceListAdapter.getlist().get(0).bluetoothAddress);
+
                                   starttime();//记录停留时间
                                   nowadress = mLeDeviceListAdapter.getlist().get(0).bluetoothAddress;
                               }
@@ -171,7 +162,7 @@ import java.util.TimerTask;
 
       //这是接收回来处理的消息
       @SuppressLint("HandlerLeak")
-      private Handler handler = new Handler() {
+      private final Handler handler = new Handler() {
           @SuppressLint("SetTextI18n")
           public void handleMessage(Message msg) {
               seconds++;
@@ -188,7 +179,7 @@ import java.util.TimerTask;
       /**
        * CountDownTimer 实现倒计时
        */
-      private CountDownTimer countDownTimer = new CountDownTimer(4 * 60 * 60 * 1000, 1000) {
+      private final CountDownTimer countDownTimer = new CountDownTimer(4 * 60 * 60 * 1000, 1000) {
           @Override
           public void onTick(long millisUntilFinished) {
               String value = formatTime(millisUntilFinished/1000);
@@ -201,16 +192,12 @@ import java.util.TimerTask;
               startActivity(intent);
           }
       };
+      @SuppressLint("NonConstantResourceId")
       public void onClick(View v) {
-          switch (v.getId()) {
-              case R.id.imageView2:
-                  // 此处添加事件
-                  countDownTimer.cancel();
-                  Intent intent=new Intent(show.this, start.class);
-                  startActivity(intent);
-                  break;
-              default:
-                  break;
+          if (v.getId() == R.id.imageView2) {// 此处添加事件
+              countDownTimer.cancel();
+              Intent intent = new Intent(show.this, start.class);
+              startActivity(intent);
           }
       }
   }

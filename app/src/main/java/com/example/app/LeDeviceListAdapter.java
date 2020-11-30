@@ -37,7 +37,6 @@ public class LeDeviceListAdapter extends BaseAdapter {
             for (int i = 0; i < mLeDevices.size(); i++) {
                 String btAddress = mLeDevices.get(i).bluetoothAddress;
                 if (btAddress.equals(device.bluetoothAddress)) {
-
                     mLeDevices.add(i + 1, device);
                     mLeDevices.remove(i);
                     return;

@@ -2,9 +2,12 @@ package com.example.app;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -27,6 +30,19 @@ public class start extends AppCompatActivity {
         name.setText(username);
         id.setText(userid);
         start.setOnClickListener(this::onClick);
+        if (Build.VERSION.SDK_INT >= 23) {
+            int REQUEST_CODE_CONTACT = 102;
+            String[] permissions = {Manifest.permission.ACCESS_COARSE_LOCATION};
+            //验证是否许可权限
+            for (String str : permissions) {
+                if (this.checkSelfPermission(str) != PackageManager.PERMISSION_GRANTED) {
+                    //申请权限
+                    this.requestPermissions(permissions, REQUEST_CODE_CONTACT);
+                    return;
+                }
+            }
+        }
+
     }
     public void init() {//初始化控件
     start=findViewById(R.id.imageView2);
