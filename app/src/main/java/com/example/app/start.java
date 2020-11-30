@@ -15,15 +15,19 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.app.tool.MyDatabaseHelper;
+
 public class start extends AppCompatActivity {
     ImageView start;
     EditText name;
     EditText id;
+    private MyDatabaseHelper dbHelper;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
         init();
+        dbHelper = new MyDatabaseHelper(this, "beacon.db", null, 1);
         SharedPreferences sharedPre=getSharedPreferences("config", MODE_PRIVATE);
         String username=sharedPre.getString("username", "");
         String userid=sharedPre.getString("userid", "");

@@ -6,9 +6,11 @@ import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -17,7 +19,13 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.app.tool.MyDatabaseHelper;
+import com.example.app.tool.state;
+
+import java.text.SimpleDateFormat;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -36,7 +44,10 @@ import java.util.TimerTask;
       private String nowadress = "";
       private Timer timer;
       private TimerTask timerTask;
+      private MyDatabaseHelper dbHelper;
+      private state now;
       ImageView start;
+      String id;
       // Stops scanning after 10 seconds.
       private static final long SCAN_PERIOD = 14400000;
       private boolean run = false;
@@ -46,12 +57,15 @@ import java.util.TimerTask;
       protected void onCreate(Bundle savedInstanceState) {
           super.onCreate(savedInstanceState);
           setContentView(R.layout.activity_show);
+          Intent intent = getIntent();
+          id = intent.getStringExtra("userid");
           init();
           run = true;
 //        handler.postDelayed(task, 1000);
           mHandler = new Handler();
           // Use this check to determine whether BLE is supported on the device.  Then you can
           // selectively disable BLE-related features.
+          dbHelper = new MyDatabaseHelper(this, "beacon.db", null, 1);
           if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
               Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
               finish();
@@ -121,25 +135,50 @@ import java.util.TimerTask;
                   @SuppressLint("SetTextI18n")
                   @Override
                   public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {//每扫描到一个设备刷新数据
-                      System.out.println("Asd");
+
                       final iBeaconClass.iBeacon ibeacon = iBeaconClass.fromScanData(device, rssi, scanRecord);
                       runOnUiThread(() -> {
                           mLeDeviceListAdapter.addDevice(ibeacon);
                           Collections.sort(mLeDeviceListAdapter.getlist(), new LeDeviceListAdapter.sortById());
                           if (mLeDeviceListAdapter.getlist().size() > 0) {
                               if (!mLeDeviceListAdapter.getlist().get(0).bluetoothAddress.equals(nowadress)) {//顶部蓝牙设备变化
-
-                                  starttime();//记录停留时间
+                                  if (now != null) {
+                                      now.setEndTime(NowString());
+                                      insert(now);//插入数据
+                                      now = null;
+                                  }
+                                  now=new state();
+                                  now.setDeviceID(id);
+                                  now.setStartTime(NowString());
+                                  starting();//记录停留时间
                                   nowadress = mLeDeviceListAdapter.getlist().get(0).bluetoothAddress;
                               }
+                              now.setBeaconID(nowadress);
                               Content.setText("你目前所在位置信标ID为:" + nowadress.substring(12, 14) + nowadress.substring(15, 17));
                           }
                           mLeDeviceListAdapter.notifyDataSetChanged();
                       });
                   }
               };
+      public void insert(state now){
+          SQLiteDatabase db = dbHelper.getWritableDatabase();
+          ContentValues values = new ContentValues();
+          // 第一条数据
+          values.put("iBeaconid", now.getBeaconID());
+          values.put("deviceid", now.getDeviceID());
+          values.put("starttime", now.getStartTime());
+          values.put("endtime", now.getEndTime());
+          long a=db.insert("info", null, values);
+          if (a>0)
+              System.out.println("成功一次");
 
-      private void starttime() {
+      }
+      public String NowString() {
+          @SuppressLint("SimpleDateFormat") SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
+          return df.format(new Date());// new Date()为获取当前系统时间
+
+      }
+      private void starting() {
           seconds = 0;
           if (timer != null) {
               timer.cancel();
