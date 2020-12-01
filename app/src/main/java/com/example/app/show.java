@@ -10,11 +10,14 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -23,6 +26,10 @@ import android.widget.Toast;
 import com.example.app.tool.MyDatabaseHelper;
 import com.example.app.tool.state;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
@@ -58,7 +65,8 @@ import java.util.TimerTask;
           super.onCreate(savedInstanceState);
           setContentView(R.layout.activity_show);
           Intent intent = getIntent();
-          id = intent.getStringExtra("userid");
+          id = intent.getStringExtra("id");
+
           init();
           run = true;
 //        handler.postDelayed(task, 1000);
@@ -114,18 +122,28 @@ import java.util.TimerTask;
 //            System.out.println("Asd"+ mLeDeviceListAdapter.getlist().get(0).bluetoothAddress);
 //            Content.setText("你目前所在位置:" + mLeDeviceListAdapter.getlist().get(0).bluetoothAddress);
 //        }
-          scanLeDevice();
+          scanLeDevice(true);
       }
 
-      private void scanLeDevice() {
+      private void scanLeDevice(boolean enable) {
           // Stops scanning after a pre-defined scan period.
-          mHandler.postDelayed(() -> {
+          if (enable) {
+              // Stops scanning after a pre-defined scan period.
+              mHandler.postDelayed(new Runnable() {
+                  @Override
+                  public void run() {
+                      mScanning = false;
+                      mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                      invalidateOptionsMenu();
+                  }
+              }, SCAN_PERIOD);
+
+              mScanning = true;
+              mBluetoothAdapter.startLeScan(mLeScanCallback);
+          } else {
               mScanning = false;
               mBluetoothAdapter.stopLeScan(mLeScanCallback);
-              invalidateOptionsMenu();
-          }, SCAN_PERIOD);
-          mScanning = true;
-          mBluetoothAdapter.startLeScan(mLeScanCallback);
+          }
           invalidateOptionsMenu();
       }
 
@@ -160,6 +178,7 @@ import java.util.TimerTask;
                       });
                   }
               };
+
       public void insert(state now){
           SQLiteDatabase db = dbHelper.getWritableDatabase();
           ContentValues values = new ContentValues();
@@ -168,16 +187,16 @@ import java.util.TimerTask;
           values.put("deviceid", now.getDeviceID());
           values.put("starttime", now.getStartTime());
           values.put("endtime", now.getEndTime());
+          System.out.println(values.get("starttime"));
           long a=db.insert("info", null, values);
-          if (a>0)
-              System.out.println("成功一次");
+      }//插入数据
 
-      }
       public String NowString() {
           @SuppressLint("SimpleDateFormat") SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");//设置日期格式
           return df.format(new Date());// new Date()为获取当前系统时间
 
-      }
+      }//日期格式整理
+
       private void starting() {
           seconds = 0;
           if (timer != null) {
@@ -197,8 +216,61 @@ import java.util.TimerTask;
           };
           timer = new Timer();
           timer.schedule(timerTask, 0, 1000);
-      }
+      }//开始倒计时
 
+      public void ExportToCSV(Cursor c, String fileName) {//到处csv文件
+
+          int rowCount = 0;
+          int colCount = 0;
+          FileWriter fw;
+          BufferedWriter bfw;
+          File sdCardDir = Environment.getExternalStorageDirectory();
+          File saveFile = new File(sdCardDir, fileName);
+          try {
+
+              rowCount = c.getCount();
+              colCount = c.getColumnCount();
+              fw = new FileWriter(saveFile);
+              bfw = new BufferedWriter(fw);
+              if (rowCount > 0) {
+                  c.moveToFirst();
+                  // 写入表头
+                  for (int i = 0; i < colCount; i++) {
+                      if (i != colCount - 1)
+                          bfw.write(c.getColumnName(i) + ',');
+                      else
+                          bfw.write(c.getColumnName(i));
+                  }
+                  // 写好表头后换行
+                  bfw.newLine();
+                  // 写入数据
+                  for (int i = 0; i < rowCount; i++) {
+                      c.moveToPosition(i);
+                      // Toast.makeText(mContext, "正在导出第"+(i+1)+"条",
+                      // Toast.LENGTH_SHORT).show();
+                      for (int j = 0; j < colCount; j++) {
+                          if (j != colCount - 1)
+                              bfw.write(c.getString(j) + ',');
+                          else
+                              bfw.write(c.getString(j));
+                      }
+                      // 写好每条记录后换行
+                      bfw.newLine();
+                  }
+              }
+              // 将缓存数据写入文件
+              bfw.flush();
+              // 释放缓存
+              bfw.close();
+              // Toast.makeText(mContext, "导出完毕！", Toast.LENGTH_SHORT).show();
+              System.out.println("导出数据导出完毕！");
+          } catch (IOException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+          } finally {
+              c.close();
+          }
+      }
       //这是接收回来处理的消息
       @SuppressLint("HandlerLeak")
       private final Handler handler = new Handler() {
@@ -234,7 +306,15 @@ import java.util.TimerTask;
       @SuppressLint("NonConstantResourceId")
       public void onClick(View v) {
           if (v.getId() == R.id.imageView2) {// 此处添加事件
+              scanLeDevice(false);
+
               countDownTimer.cancel();
+              SQLiteDatabase helper=dbHelper.getWritableDatabase();
+              Cursor c = helper.rawQuery("select * from info", null);
+              System.out.println(c.getCount());
+              ExportToCSV(c, "test.csv");
+              helper.execSQL("delete from info");
+              helper.execSQL("DELETE FROM sqlite_sequence");
               Intent intent = new Intent(show.this, start.class);
               startActivity(intent);
           }
