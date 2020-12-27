@@ -148,37 +148,51 @@ import java.util.TimerTask;
       }
 
       // Device scan callback.
-      private final BluetoothAdapter.LeScanCallback mLeScanCallback =
-              new BluetoothAdapter.LeScanCallback() {//对设备列表进行刷新的接口
+      private final BluetoothAdapter.LeScanCallback mLeScanCallback = new BluetoothAdapter.LeScanCallback() {//对设备列表进行刷新的接口
                   @SuppressLint("SetTextI18n")
                   @Override
-                  public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {//每扫描到一个设备刷新数据
 
+                  public void onLeScan(final BluetoothDevice device, int rssi, byte[] scanRecord) {//每扫描到一个设备刷新数据
                       final iBeaconClass.iBeacon ibeacon = iBeaconClass.fromScanData(device, rssi, scanRecord);
                       runOnUiThread(() -> {
                           mLeDeviceListAdapter.addDevice(ibeacon);
                           Collections.sort(mLeDeviceListAdapter.getlist(), new LeDeviceListAdapter.sortById());
-                          if (mLeDeviceListAdapter.getlist().size() > 0) {
-                              if (!mLeDeviceListAdapter.getlist().get(0).bluetoothAddress.equals(nowadress)) {//顶部蓝牙设备变化
-                                  if (now != null) {
-                                      now.setEndTime(NowString());
-                                      insert(now);//插入数据
-                                      now = null;
-                                  }
-                                  now=new state();
-                                  now.setDeviceID(id);
-                                  now.setStartTime(NowString());
-                                  starting();//记录停留时间
-                                  nowadress = mLeDeviceListAdapter.getlist().get(0).bluetoothAddress;
-                              }
-                              now.setBeaconID(nowadress);
-                              Content.setText("你目前所在位置信标ID为:" + nowadress.substring(12, 14) + nowadress.substring(15, 17));
+                          long a = 0;
+                          try {
+                              a=dateDiff(now.getStartTime(), NowString(),"yyyy-MM-dd HH:mm:ss");
+                          } catch (Exception e) {
+                              e.printStackTrace();
                           }
-                          mLeDeviceListAdapter.notifyDataSetChanged();
+                          if (now==null || a>=10000 ){
+                              if (mLeDeviceListAdapter.getlist().size() > 0) {
+                                  if (!mLeDeviceListAdapter.getlist().get(0).bluetoothAddress.equals(nowadress)) {//顶部蓝牙设备变化
+                                      if (now != null) {
+                                          now.setEndTime(NowString());
+                                          insert(now);//插入数据
+                                          now = null;
+                                      }
+                                      now = new state();
+                                      now.setDeviceID(id);
+                                      now.setStartTime(NowString());
+                                      starting();//记录停留时间
+                                      nowadress = mLeDeviceListAdapter.getlist().get(0).bluetoothAddress;
+                                  }
+                                  now.setBeaconID(nowadress);
+                                  Content.setText("你目前所在位置信标ID为:" + nowadress.substring(12, 14) + nowadress.substring(15, 17));
+                              }
+                              mLeDeviceListAdapter.notifyDataSetChanged();
+                          }else {
+                          }
                       });
                   }
               };
-
+      public static long dateDiff(String startTime, String endTime, String format) throws Exception {
+          SimpleDateFormat sd = new SimpleDateFormat(format);
+          long diff;
+          //计算两个时间的毫秒时间差异
+          diff = sd.parse(endTime).getTime() - sd.parse(startTime).getTime();
+          return diff ;
+      }
       public void insert(state now){
           SQLiteDatabase db = dbHelper.getWritableDatabase();
           ContentValues values = new ContentValues();
@@ -187,7 +201,6 @@ import java.util.TimerTask;
           values.put("deviceid", now.getDeviceID());
           values.put("starttime", now.getStartTime());
           values.put("endtime", now.getEndTime());
-          System.out.println(values.get("starttime"));
           long a=db.insert("info", null, values);
       }//插入数据
 
@@ -217,7 +230,6 @@ import java.util.TimerTask;
           timer = new Timer();
           timer.schedule(timerTask, 0, 1000);
       }//开始倒计时
-
       public void ExportToCSV(Cursor c, String fileName) {//到处csv文件
 
           int rowCount = 0;
@@ -311,10 +323,9 @@ import java.util.TimerTask;
               countDownTimer.cancel();
               SQLiteDatabase helper=dbHelper.getWritableDatabase();
               Cursor c = helper.rawQuery("select * from info", null);
-              System.out.println(c.getCount());
               ExportToCSV(c, "test.csv");
-              helper.execSQL("delete from info");
-              helper.execSQL("DELETE FROM sqlite_sequence");
+              helper.execSQL("DELETE FROM info");
+              helper.execSQL("DELETE FROM sqlite_sequence WHERE name = 'info'");
               Intent intent = new Intent(show.this, start.class);
               startActivity(intent);
           }
